@@ -159,6 +159,27 @@ const deletePokemon = (request, response) => {
  * ===================================
  */
 
+ const getUser = (request, response) => {
+
+  let id = request.params['id'];
+
+  const queryString = 'SELECT * FROM users WHERE id = ' + id + ';';
+
+  pool.query(queryString, (err, result) => {
+
+    if (err) {
+
+      console.error('Query error:', err.stack);
+
+    } else {
+
+      console.log('Query result:', result);
+
+      // redirect to home page
+      response.render( 'users/show', {users: result.rows[0]} );
+    }
+  });
+}
 
 const userNew = (request, response) => {
   response.render('users/new');
@@ -237,6 +258,8 @@ app.put('/pokemon/:id', updatePokemon);
 app.delete('/pokemon/:id', deletePokemon);
 
 // TODO: New routes for creating users
+
+app.get('/users/:id', getUser);
 
 app.get('/users/new', userNew);
 app.post('/users', userCreate);
