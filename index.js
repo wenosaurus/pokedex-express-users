@@ -21,7 +21,7 @@ const config = {
 };
 
 if (config.user === 'ck') {
-	throw new Error("====== UPDATE YOUR DATABASE CONFIGURATION =======");
+    throw new Error("====== UPDATE YOUR DATABASE CONFIGURATION =======");
 };
 
 const pool = new pg.Pool(config);
@@ -66,7 +66,7 @@ app.engine('jsx', reactEngine);
     if (err) {
       console.error('Query error:', err.stack);
     } else {
-      console.log('Query result:', result);
+      // console.log('Query result:', result);
 
       // redirect to home page
       response.render( 'pokemon/home', {pokemon: result.rows} );
@@ -87,7 +87,7 @@ const getPokemon = (request, response) => {
     if (err) {
       console.error('Query error:', err.stack);
     } else {
-      console.log('Query result:', result);
+      // console.log('Query result:', result);
 
       // redirect to home page
       response.render( 'pokemon/pokemon', {pokemon: result.rows[0]} );
@@ -105,7 +105,7 @@ const postPokemon = (request, response) => {
     if (err) {
       console.log('query error:', err.stack);
     } else {
-      console.log('query result:', result);
+      // console.log('query result:', result);
 
       // redirect to home page
       response.redirect('/');
@@ -120,7 +120,7 @@ const editPokemonForm = (request, response) => {
     if (err) {
       console.error('Query error:', err.stack);
     } else {
-      console.log('Query result:', result);
+      // console.log('Query result:', result);
 
       // redirect to home page
       response.render( 'pokemon/edit', {pokemon: result.rows[0]} );
@@ -138,7 +138,7 @@ const updatePokemon = (request, response) => {
     if (err) {
       console.error('Query error:', err.stack);
     } else {
-      console.log('Query result:', result);
+      // console.log('Query result:', result);
 
       // redirect to home page
       response.redirect('/');
@@ -159,11 +159,17 @@ const deletePokemon = (request, response) => {
  * ===================================
  */
 
+ const userNew = (request, response) => {
+  response.render('users/new');
+}
+
  const getUser = (request, response) => {
 
   let id = request.params['id'];
 
-  const queryString = 'SELECT * FROM users WHERE id = ' + id + ';';
+  // const queryString = 'SELECT * FROM users WHERE id = ' + id + ';';
+
+  const queryString = 'SELECT pokemon.name FROM pokemon INNER JOIN relationship ON (relationship.pokemon_id = pokemon.id) WHERE relationship.user_id = ' + id + ';';
 
   pool.query(queryString, (err, result) => {
 
@@ -173,17 +179,14 @@ const deletePokemon = (request, response) => {
 
     } else {
 
-      console.log('Query result:', result);
+      console.log('Query result rows:', result.rows);
+
+      }
 
       // redirect to home page
-      response.render( 'users/show', {users: result.rows[0]} );
+      response.render( 'users/show', {relationship: result.rows} );
     }
-  });
-}
-
-const userNew = (request, response) => {
-  response.render('users/new');
-}
+  )};
 
 const userCreate = (request, response) => {
 
@@ -201,7 +204,7 @@ const userCreate = (request, response) => {
       response.send('dang it.');
     } else {
 
-      console.log('Query result:', result);
+      // console.log('Query result:', result);
 
       // redirect to home page
       response.send("Added new user");
@@ -220,7 +223,7 @@ const addRelationship = (request, response) => {
 
   const values = [request.body.user_id, request.body.pokemon_id];
 
-  console.log(queryString);
+  // console.log(queryString);
 
   pool.query(queryString, values, (err, result) => {
 
@@ -230,7 +233,7 @@ const addRelationship = (request, response) => {
       response.send('dang it.');
     } else {
 
-      console.log('Query result:', result);
+      // console.log('Query result:', result);
 
       // redirect to home page
       response.send("Relationship added!");
@@ -258,15 +261,13 @@ app.put('/pokemon/:id', updatePokemon);
 app.delete('/pokemon/:id', deletePokemon);
 
 // TODO: New routes for creating users
-
-app.get('/users/:id', getUser);
-
 app.get('/users/new', userNew);
+app.get('/users/relationship', caughtPokemon);
+app.get('/users/:id', getUser);
 app.post('/users', userCreate);
 
 // Pokemon caught
 
-app.get('/users/relationship', caughtPokemon);
 app.post('/caught', addRelationship);
 
 /**
@@ -292,5 +293,4 @@ function shutDown() {
 
 process.on('SIGTERM', shutDown);
 process.on('SIGINT', shutDown);
-
 
