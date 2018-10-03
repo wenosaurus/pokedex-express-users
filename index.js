@@ -14,7 +14,7 @@ const pg = require('pg');
 
 // Initialise postgres client
 const config = {
-  user: 'akira',
+  user: 'wenvo',
   host: '127.0.0.1',
   database: 'pokemons',
   port: 5432,
@@ -61,6 +61,7 @@ app.engine('jsx', reactEngine);
   // respond with HTML page displaying all pokemon
   //
   const queryString = 'SELECT * from pokemon;';
+
   pool.query(queryString, (err, result) => {
     if (err) {
       console.error('Query error:', err.stack);
@@ -74,7 +75,9 @@ app.engine('jsx', reactEngine);
 }
 
 const getNew = (request, response) => {
+
   response.render('pokemon/new');
+
 }
 
 const getPokemon = (request, response) => {
@@ -94,7 +97,7 @@ const getPokemon = (request, response) => {
 
 const postPokemon = (request, response) => {
   let params = request.body;
-  
+
   const queryString = 'INSERT INTO pokemon(name, height) VALUES($1, $2);';
   const values = [params.name, params.height];
 
@@ -180,7 +183,36 @@ const userCreate = (request, response) => {
       console.log('Query result:', result);
 
       // redirect to home page
-      response.redirect('/');
+      response.send("Added new user");
+    }
+  });
+}
+
+const caughtPokemon = (request, response) => {
+
+  response.render('users/relationship');
+}
+
+const addRelationship = (request, response) => {
+
+  const queryString = 'INSERT INTO relationship (user_id, pokemon_id) VALUES ($1, $2)';
+
+  const values = [request.body.user_id, request.body.pokemon_id];
+
+  console.log(queryString);
+
+  pool.query(queryString, values, (err, result) => {
+
+    if (err) {
+
+      console.error('Query error:', err.stack);
+      response.send('dang it.');
+    } else {
+
+      console.log('Query result:', result);
+
+      // redirect to home page
+      response.send("Relationship added!");
     }
   });
 }
@@ -208,6 +240,11 @@ app.delete('/pokemon/:id', deletePokemon);
 
 app.get('/users/new', userNew);
 app.post('/users', userCreate);
+
+// Pokemon caught
+
+app.get('/users/relationship', caughtPokemon);
+app.post('/caught', addRelationship);
 
 /**
  * ===================================
