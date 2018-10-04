@@ -6,8 +6,7 @@ class New extends React.Component {
       <html>
         <head />
         <body>
-          <form className="pokemon-form" method="POST" action="/pokemons">
-            <div className="pokemon-attribute">
+          <form className="pokemon-form" method="POST" action="/pokemon">
               name:<input name="name" type="text" />
             </div>
             <div className="pokemon-attribute">

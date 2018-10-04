@@ -11,6 +11,8 @@
 const express = require('express');
 const methodOverride = require('method-override');
 const pg = require('pg');
+const cookieParser = require('cookie-parser')
+const sha256 = require('js-sha256');
 
 // Initialise postgres client
 const config = {
@@ -41,6 +43,7 @@ const app = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
+app.use(cookieParser());
 
 
 // Set react-views to be the default view engine
@@ -66,7 +69,7 @@ app.engine('jsx', reactEngine);
     if (err) {
       console.error('Query error:', err.stack);
     } else {
-      // console.log('Query result:', result);
+      console.log('Query result:', result);
 
       // redirect to home page
       response.render( 'pokemon/home', {pokemon: result.rows} );
@@ -169,7 +172,7 @@ const deletePokemon = (request, response) => {
 
   // const queryString = 'SELECT * FROM users WHERE id = ' + id + ';';
 
-  const queryString = 'SELECT pokemon.name FROM pokemon INNER JOIN relationship ON (relationship.pokemon_id = pokemon.id) WHERE relationship.user_id = ' + id + ';';
+  const queryString = 'SELECT pokemon.id, pokemon.name FROM pokemon INNER JOIN relationship ON (relationship.pokemon_id = pokemon.id) WHERE relationship.user_id = ' + id + ';';
 
   pool.query(queryString, (err, result) => {
 
@@ -190,9 +193,11 @@ const deletePokemon = (request, response) => {
 
 const userCreate = (request, response) => {
 
-  const queryString = 'INSERT INTO users (name) VALUES ($1)';
+  const queryString = 'INSERT INTO users (name, password) VALUES ($1, $2)';
 
-  const values = [request.body.name];
+  let hashedValue = sha256(request.body.password);
+
+  const values = [request.body.name, hashedValue];
 
   console.log(queryString);
 
@@ -204,6 +209,9 @@ const userCreate = (request, response) => {
       response.send('dang it.');
     } else {
 
+        // tell the browser to set a cookie
+        // response.cookie('loggedin', 'true');
+
       // console.log('Query result:', result);
 
       // redirect to home page
@@ -211,6 +219,36 @@ const userCreate = (request, response) => {
     }
   });
 }
+
+// const userLogin = (request, response) => {
+
+//     let id = request.body.id;
+
+//   const queryString = 'SELECT password FROM users WHERE id = ' + id + ';'';
+
+//   let hashedValue = sha256(request.body.password);
+
+//   const values = [id, hashedValue];
+//   console.log(queryString);
+
+//   pool.query(queryString, values, (err, result) => {
+
+//     if (err) {
+
+//       console.error('Query error:', err.stack);
+//       response.send('Wrong password');
+//     } else {
+
+//         // tell the browser to set a cookie
+//         // response.cookie('loggedin', 'true');
+
+//       // console.log('Query result:', result);
+
+//       // redirect to home page
+//       response.send("Added new user");
+//     }
+//   });
+// }
 
 const caughtPokemon = (request, response) => {
 
@@ -263,12 +301,15 @@ app.delete('/pokemon/:id', deletePokemon);
 // TODO: New routes for creating users
 app.get('/users/new', userNew);
 app.get('/users/relationship', caughtPokemon);
+// app.post('/login', userLogin);
 app.get('/users/:id', getUser);
 app.post('/users', userCreate);
 
 // Pokemon caught
 
 app.post('/caught', addRelationship);
+
+// User password
 
 /**
  * ===================================
