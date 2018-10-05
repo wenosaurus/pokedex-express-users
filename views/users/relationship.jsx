@@ -9,7 +9,6 @@ class Relationship extends React.Component {
         <h1>Which pokemon did you catch?</h1>
           <form method="POST" action="/caught">
             <div>
-              <p>User ID:<input name="user_id" type="text" /></p>
               <p>Pokemon ID:<input name="pokemon_id" type="text" /></p>
             </div>
             <input type="submit" value="Submit" />

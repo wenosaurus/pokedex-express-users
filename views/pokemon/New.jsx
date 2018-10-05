@@ -4,9 +4,11 @@ class New extends React.Component {
   render() {
     return (
       <html>
-        <head />
+        <head>
+        </head>
         <body>
           <form className="pokemon-form" method="POST" action="/pokemon">
+          <div className="pokemon-attribute">
               name:<input name="name" type="text" />
             </div>
             <div className="pokemon-attribute">

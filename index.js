@@ -272,6 +272,8 @@ const userLoggedIn = (request, response) => {
             // tell the browser to set a cookie
             response.cookie('loggedin', 'true');
 
+            response.cookie('cookieId', id);
+
             response.send('You are logged in');
 
         } else{
@@ -285,6 +287,7 @@ const userLoggedIn = (request, response) => {
 
 const userLogout = (request, response) => {
     response.clearCookie('loggedin');
+    response.clearCookie('cookieId');
     response.send('You are logged out');
 }
 
@@ -293,29 +296,27 @@ const caughtPokemon = (request, response) => {
   response.render('users/relationship');
 }
 
-const addRelationship = (request, response) => {
+const postRelationship = (request, response) => {
 
-  const queryString = 'INSERT INTO relationship (user_id, pokemon_id) VALUES ($1, $2)';
+    if (request.cookies['loggedin'] === 'true') {
+        let id = request.cookies['cookieId']
+        const queryString = 'INSERT INTO relationship (user_id, pokemon_id) VALUES ($1, $2)';
+        const values = [id, request.body.pokemon_id];
 
-  const values = [request.body.user_id, request.body.pokemon_id];
+        pool.query(queryString, values, (err, result) => {
 
-  // console.log(queryString);
-
-  pool.query(queryString, values, (err, result) => {
-
-    if (err) {
-
+            if(err) {
       console.error('Query error:', err.stack);
       response.send('dang it.');
+  } else {
+      response.send('Pokemon caught');
+  }
+});
     } else {
-
-      // console.log('Query result:', result);
-
       // redirect to home page
-      response.send("Relationship added!");
+      response.send("Try logging in");
     }
-  });
-}
+  }
 
 const cookieTest = (request, response) => {
 
@@ -360,7 +361,7 @@ app.get('/cookietest', cookieTest);
 
 // Pokemon caught
 
-app.post('/caught', addRelationship);
+app.post('/caught', postRelationship);
 
 // User password
 
